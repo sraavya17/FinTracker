@@ -1,17 +1,16 @@
 package com.finTracker.response;
 
-import java.time.LocalDateTime;
-
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Builder
-public class UserResponseDTO {
+public class LoginResponseDTO {
 	private Integer userId;
 	private String name;
 	private String email;
 	private String preferredCurrency;
-	private LocalDateTime createdAt;
+	private String token;
+	private String tokenType;
 
 }
