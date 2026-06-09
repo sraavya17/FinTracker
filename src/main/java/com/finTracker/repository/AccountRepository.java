@@ -1,6 +1,7 @@
 package com.finTracker.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -13,5 +14,9 @@ public interface AccountRepository extends JpaRepository<Account, Integer>{
 	Boolean existsByUser_UserIdAndAccountNameIgnoreCase(Integer userId, String accountName);
 	
 	List<Account> findByUser_UserIdAndIsActiveTrue(Integer userId);
+	
+	Optional<Account> findByAccountIdAndUser_UserId(Integer accountId, Integer userId);
+	
+	Boolean existsByUser_UserIdAndAccountNameIgnoreCaseAndAccountIdNot(Integer userId, String accountName, Integer accountId);
 
 }
