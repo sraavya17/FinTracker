@@ -6,7 +6,9 @@ import java.util.List;
 import com.finTracker.exception.FinTrackerException;
 import com.finTracker.request.AccountRequestDTO;
 import com.finTracker.request.AccountUpdateRequestDTO;
+import com.finTracker.request.TransferRequestDTO;
 import com.finTracker.response.AccountResponseDTO;
+import com.finTracker.response.TransferResponseDTO;
 
 public interface AccountService {
 	
@@ -17,5 +19,7 @@ public interface AccountService {
 	AccountResponseDTO updateAccount(String email, Integer accountId, AccountUpdateRequestDTO request) throws FinTrackerException;
 	
 	void deactivateAccount(String email, Integer accountId) throws FinTrackerException;
+	
+	TransferResponseDTO transfer(String email, TransferRequestDTO request) throws FinTrackerException;
 
 }

@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.finTracker.request.AccountRequestDTO;
 import com.finTracker.request.AccountUpdateRequestDTO;
+import com.finTracker.request.TransferRequestDTO;
 import com.finTracker.response.AccountResponseDTO;
+import com.finTracker.response.TransferResponseDTO;
 import com.finTracker.service.AccountService;
 
 @RestController
@@ -58,6 +60,14 @@ public class AccountController {
 		accountService.deactivateAccount(userDetails.getUsername(), accountId);
 		return new ResponseEntity<String>("Account deactivated successfully", HttpStatus.OK);
 		
+	}
+	
+	@PostMapping("/transfer")
+	public ResponseEntity<TransferResponseDTO> transfer(@AuthenticationPrincipal UserDetails userDetails, 
+			@RequestBody TransferRequestDTO request) throws Exception {
+		TransferResponseDTO response = accountService.transfer(userDetails.getUsername(), request);
+		
+		return new ResponseEntity<TransferResponseDTO>(response, HttpStatus.OK);
 	}
 
 }

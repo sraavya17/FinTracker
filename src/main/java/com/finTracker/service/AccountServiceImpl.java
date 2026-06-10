@@ -1,5 +1,6 @@
 package com.finTracker.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -11,7 +12,9 @@ import com.finTracker.repository.AccountRepository;
 import com.finTracker.repository.UserRepository;
 import com.finTracker.request.AccountRequestDTO;
 import com.finTracker.request.AccountUpdateRequestDTO;
+import com.finTracker.request.TransferRequestDTO;
 import com.finTracker.response.AccountResponseDTO;
+import com.finTracker.response.TransferResponseDTO;
 
 import jakarta.transaction.Transactional;
 
@@ -95,6 +98,50 @@ public class AccountServiceImpl implements AccountService{
 		account.setIsActive(false);
 		accountRepository.save(account);
 	}
+	
+	@Override
+	public TransferResponseDTO transfer(String email, TransferRequestDTO request) throws FinTrackerException {
+		User user = userRepository.findByEmail(email).orElseThrow(() -> new FinTrackerException("UserService.USER_NOT_FOUND"));
+
+		if(request.getFromAccountId() == request.getToAccountId()) {
+			throw new FinTrackerException("AccountService.TRANSFER_SAME_ACCOUNT");
+		}
+		
+		Account fromAccount = accountRepository.findByAccountIdAndUser_UserId(request.getFromAccountId(), user.getUserId()).orElseThrow(
+				() -> new FinTrackerException("AccountService.ACCOUNT_NOT_FOUND"));
+		
+		Account toAccount = accountRepository.findByAccountIdAndUser_UserId(request.getToAccountId(), user.getUserId()).orElseThrow(
+				() -> new FinTrackerException("AccountService.ACCOUNT_NOT_FOUND"));
+		
+		if(!fromAccount.getIsActive()) {
+			throw new FinTrackerException("AccountService.FROM_ACCOUNT_INACTIVE");
+		}
+		if(!toAccount.getIsActive()) {
+			throw new FinTrackerException("AccountService.TO_ACCOUNT_INACTIVE");
+		}
+		
+		if(fromAccount.getBalance().compareTo(request.getAmount()) < 0) {
+			throw new FinTrackerException("AccountService.INSUFFICIENT_BALANCE");
+		}
+		
+		fromAccount.setBalance(fromAccount.getBalance().subtract(request.getAmount()));
+		toAccount.setBalance(toAccount.getBalance().add(request.getAmount()));
+		
+		accountRepository.save(fromAccount);
+		accountRepository.save(toAccount);
+		
+		return TransferResponseDTO.builder()
+								  .fromAccountId(fromAccount.getAccountId())
+								  .fromAccountName(fromAccount.getAccountName())
+								  .fromAccountBalance(fromAccount.getBalance())
+								  .toAccountId(toAccount.getAccountId())
+								  .toAccountName(toAccount.getAccountName())
+								  .toAccountBalance(toAccount.getBalance())
+								  .transferAmount(request.getAmount())
+								  .note(request.getNote())
+								  .transferredAt(LocalDateTime.now())
+								  .build();
+	}
 
 	
 	//Helper method to convert Account object to AccountResponseDTO object
@@ -109,6 +156,8 @@ public class AccountServiceImpl implements AccountService{
 							     .createdAt(account.getCreatedAt())
 							     .build();
 	}
+
+	
 
 
 	
