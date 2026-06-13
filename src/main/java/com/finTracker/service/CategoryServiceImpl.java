@@ -12,6 +12,7 @@ import com.finTracker.exception.FinTrackerException;
 import com.finTracker.repository.CategoryRepository;
 import com.finTracker.repository.UserRepository;
 import com.finTracker.request.CategoryRequest;
+import com.finTracker.request.CategoryUpdateRequest;
 import com.finTracker.response.CategoryResponse;
 
 import jakarta.transaction.Transactional;
@@ -60,6 +61,21 @@ public class CategoryServiceImpl implements CategoryService {
 		return categories.stream().map(this::mapToResponse).toList();
 	}
 	
+	@Override
+	public CategoryResponse updateCategory(String email, Integer categoryId, CategoryUpdateRequest request)
+			throws FinTrackerException {
+		User user = userRepository.findByEmail(email).orElseThrow(() -> new FinTrackerException("UserService.USER_NOT_FOUND"));
+		Category category = categoryRepository.findByUser_UserIdAndCategoryId(user.getUserId(), categoryId).orElseThrow(
+				() -> new FinTrackerException("CategoryService.CATEGORY_NOT_FOUND"));
+		if(categoryRepository.existsByUser_UserIdAndCategoryNameIgnoreCaseAndCategoryTypeAndCategoryIdNot(user.getUserId(),
+				category.getCategoryName(), category.getCategoryType(), categoryId)) {
+			throw new FinTrackerException("CategoryService.CATEGORY_EXISTS");
+		}
+		category.setCategoryName(request.getCategoryName());
+		categoryRepository.save(category);
+		return mapToResponse(category);
+	}
+	
 	//private helper method
 	private CategoryResponse mapToResponse(Category category) {
 		return CategoryResponse.builder()
@@ -69,6 +85,17 @@ public class CategoryServiceImpl implements CategoryService {
 							   .createdAt(category.getCreatedAt())
 							   .build();
 	}
+
+	@Override
+	public void deleteCategory(String email, Integer categoryId) throws FinTrackerException {
+		User user = userRepository.findByEmail(email).orElseThrow(() -> new FinTrackerException("UserService.USER_NOT_FOUND"));
+		Category category = categoryRepository.findByUser_UserIdAndCategoryId(user.getUserId(), categoryId).orElseThrow(
+				() -> new FinTrackerException("CategoryService.CATEGORY_NOT_FOUND"));
+		
+		categoryRepository.delete(category);
+		
+	}
+
 
 
 }
